@@ -53,7 +53,7 @@ android {
 
     repositories {
         flatDir {
-            dirs 'libs' // Points to the 'libs' directory in your app module
+            dirs 'libs' 
         }
     }
 
@@ -72,6 +72,7 @@ flutter {
 
 // dependencies {}
 dependencies {
-    // Other dependencies...
-    implementation fileTree(dir: "libs", include: ["*.aar"])
+    implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+//
+//    implementation fileTree(dir: "libs", include: ["*.aar"])
 }

@@ -89,7 +89,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const platform = MethodChannel('com.icomon.icdemo/device_manager');
+  static const platform = MethodChannel('com.example.sdk_connection_2/device_manager');
   FlutterBlue flutterBlue = FlutterBlue.instance;
   List<CustomBluetoothDevice> devicesList = [];
   BluetoothDevice? connectedDevice;

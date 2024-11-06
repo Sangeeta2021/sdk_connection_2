@@ -15,10 +15,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-//        flatDir {
-//            dirs 'libs'
-//            //this we might can change to app/libs
-//        }
+        flatDir {
+            dirs 'app/libs'
+            // dirs 'libs' // for change
+        }
+
     }
 }
 
