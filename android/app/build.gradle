@@ -53,15 +53,25 @@ android {
 
     repositories {
         flatDir {
-            dirs 'libs' 
-        }
+            dirs 'libs'
     }
+}
+    dependencies {
+         implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+        //  implementation(name: 'ICDeviceManager', ext: 'aar')
+       
+}
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+
+            // Use ProGuard rules
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
@@ -70,9 +80,4 @@ flutter {
     source '../..'
 }
 
-// dependencies {}
-dependencies {
-    implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
-//
-//    implementation fileTree(dir: "libs", include: ["*.aar"])
-}
+

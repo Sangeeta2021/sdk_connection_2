@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sdk_connection_2/Screen/Home_screen.dart';
+import 'package:sdk_connection_2/Screen/deviceManager_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.purple,
       ),
-      home: HomeScreen(),
+      home: DeviceManagerScreen(),
       
     );
   }

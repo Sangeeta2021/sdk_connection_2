@@ -181,18 +181,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Bluetooth Devices"),
+        centerTitle: true,
+        backgroundColor: Colors.purple.shade100,
+        title: Text("BLE SDK Connection Method 2",
+       ),
       ),
       body: ListView.builder(
         itemCount: devicesList.length,
         itemBuilder: (context, index) {
           final device = devicesList[index];
-          return ListTile(
-            title: Text(device.name),
-            subtitle: Text(device.id),
-            trailing: ElevatedButton(
-              onPressed: () => _connectToDevice(device),
-              child: Text('Connect'),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 16),
+            child: ListTile(
+              title: Text(device.name),
+              subtitle: Text(device.id),
+              trailing: ElevatedButton(
+                onPressed: () => _connectToDevice(device),
+                child: Text('Connect'),
+              ),
             ),
           );
         },
