@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sdk_connection_2/Screen/deviceManager_screen.dart';
+import 'package:sdk_connection_2/Screen/testScreen.dart';
 
 void main() {
   runApp(const MyApp());
