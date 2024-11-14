@@ -57,13 +57,11 @@ android {
     }
 }
     dependencies {
-        //  implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
-         implementation(name: 'ICDeviceManager', ext: 'aar'){
-            transitive = false
-         }
-        
+    implementation(name: 'ICDeviceManager', ext: 'aar') {
+        transitive = false // Disable transitive dependencies if needed
+    }
 }
-
+    
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
