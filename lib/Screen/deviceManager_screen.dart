@@ -135,16 +135,20 @@
 
 
 
-//*******************8Updated Code******************************/
+//*******************Updated Code******************************/
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sdk_connection_2/utils/constants.dart';
+import 'package:sdk_connection_2/widget/sizedBox.dart';
 
 class DeviceManagerScreen extends StatefulWidget {
+  const DeviceManagerScreen({super.key});
+
   @override
-  _DeviceManagerScreenState createState() => _DeviceManagerScreenState();
+  State<DeviceManagerScreen> createState() => _DeviceManagerScreenState();
 }
 
 class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
@@ -243,51 +247,45 @@ class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
         throw MissingPluginException("Not implemented: ${call.method}");
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.purple.shade200,
         centerTitle: true,
-        title: Text('BLE SDK Connection, DM Screen'),
+        title: Text('BLE SDK Connection, DM Screen', style: appBarTextStyle,),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Connected Device: $_deviceName',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Weight Data: $_weightData',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 20),
+
+            detailsRow("Connected Device:  ",_deviceName),
+            height20, 
+            detailsRow("Weight Data:  ",_weightData),          
+             height20,
             ElevatedButton(
               onPressed: _getWeightData,
-              child: Text('Get Weight Data'),
+              child: Text('Get Weight Data', style: buttonTextStyle,),
             ),
-            SizedBox(height: 20),
+            height20,
             ElevatedButton(
               onPressed: () async {
                 if (_deviceList.isNotEmpty) {
                   await _connectToDevice(_deviceList.first['address']!);
                 }
               },
-              child: Text('Connect to Device'),
+              child: Text('Connect to Device', style: buttonTextStyle,),
             ),
-            SizedBox(height: 20),
+            height20,
             Expanded(
               child: ListView.builder(
                 itemCount: _deviceList.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(_deviceList[index]['name']!),
-                    subtitle: Text(_deviceList[index]['address']!),
+                    title: Text(_deviceList[index]['name']!, style: blackHeadingStyle,),
+                    subtitle: Text(_deviceList[index]['address']!, style: blackContentStyle,),
                     onTap: () async {
                       await _connectToDevice(_deviceList[index]['address']!);
                     },
@@ -299,5 +297,14 @@ class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
         ),
       ),
     );
+  }
+
+  Widget detailsRow(String ques, String res) {
+    return RichText(text: TextSpan(
+            children: [
+              TextSpan(text: ques, style: blackContentStyle),
+              TextSpan(text: res, style: blackHeadingStyle)
+            ],
+          ),);
   }
 }
