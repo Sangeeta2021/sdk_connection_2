@@ -115,7 +115,7 @@
 //       appBar: AppBar(
 //         backgroundColor: Colors.purple.shade200,
 //         centerTitle: true,
-//         title: Text('BLE SDK Connection, DM Screen', style: appBarTextStyle,),
+//         title: Text('BLE SDK Connection, Test Screen', style: appBarTextStyle,),
 //       ),
 //       body: Padding(
 //         padding: const EdgeInsets.all(16.0),
@@ -172,220 +172,91 @@
 // }
 
 
-//***************Updated code for fetching weight with GATT********************/
+
+
+//********************8updated code for getting uuid**************/
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 class TestScreen extends StatefulWidget {
-  const TestScreen({super.key});
-
   @override
-  State<TestScreen> createState() => _TestScreenState();
+  _TestScreenState createState() => _TestScreenState();
 }
 
 class _TestScreenState extends State<TestScreen> {
-  static const platform = MethodChannel('com.example.sdk_connection_2/device_manager');
-  String _weightData = 'No data received yet';
-  String _deviceName = 'No device connected';
-  List<Map<String, String>> _deviceList = [];
-  bool _isScanning = false;
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  List<BluetoothDevice> connectedDevices = [];
+  List<ScanResult> scanResults = [];
+  BluetoothDevice? selectedDevice;
 
   @override
   void initState() {
     super.initState();
-    platform.setMethodCallHandler(_handleNativeMethodCall);
-    _checkPermissions();
-  }
-
-  // Future<void> _checkPermissions() async {
-  //   final bluetoothStatus = await Permission.bluetooth.status;
-  //   final locationStatus = await Permission.locationWhenInUse.status;
-
-  //   if (!bluetoothStatus.isGranted) {
-  //     await Permission.bluetooth.request();
-  //   }
-  //   if (!locationStatus.isGranted) {
-  //     await Permission.locationWhenInUse.request();
-  //   }
-
-  //   if (bluetoothStatus.isGranted && locationStatus.isGranted) {
-  //     _startScan();
-  //   } else {
-  //     setState(() {
-  //       _weightData = "Permissions denied!";
-  //     });
-  //   }
-  // }
-
-
-  Future<void> _checkPermissions() async {
-  final bluetoothStatus = await Permission.bluetoothScan.status;
-  final connectStatus = await Permission.bluetoothConnect.status;
-  final locationStatus = await Permission.locationWhenInUse.status;
-
-  if (!bluetoothStatus.isGranted) {
-    await Permission.bluetoothScan.request();
-  }
-  if (!connectStatus.isGranted) {
-    await Permission.bluetoothConnect.request();
-  }
-  if (!locationStatus.isGranted) {
-    await Permission.locationWhenInUse.request();
-  }
-
-  if (bluetoothStatus.isGranted && connectStatus.isGranted && locationStatus.isGranted) {
     _startScan();
-  } else {
-    setState(() {
-      _weightData = "Permissions denied!";
-    });
   }
-}
-
 
   Future<void> _startScan() async {
-    setState(() {
-      _isScanning = true;
-      _deviceList.clear();
+    // Stop any previous scans
+    await flutterBlue.stopScan();
+
+    // Start scanning
+    flutterBlue.scan(timeout: Duration(seconds: 10)).listen((scanResult) {
+      if (!scanResults.any((result) => result.device.id == scanResult.device.id)) {
+        setState(() {
+          scanResults.add(scanResult);
+        });
+      }
     });
+  }
+
+  Future<void> _connectToDevice(BluetoothDevice device) async {
     try {
-      await platform.invokeMethod('startScan');
-    } on PlatformException catch (e) {
+      await device.connect();
       setState(() {
-        _weightData = "Failed to start scan: ${e.message}";
+        selectedDevice = device;
       });
-    } finally {
-      setState(() {
-        _isScanning = false;
-      });
-    }
-  }
 
-  // Future<void> _connectToDevice(String deviceAddress) async {
-  //   try {
-  //     await platform.invokeMethod('connectToDevice', {'deviceId': deviceAddress});
-  //     setState(() {
-  //       _deviceName = "Connected to $deviceAddress";
-  //     });
-  //   } on PlatformException catch (e) {
-  //     setState(() {
-  //       _deviceName = "Failed to connect: ${e.message}";
-  //     });
-  //   }
-  // }
-  Future<void> _connectToDevice(String? deviceAddress) async {
-  if (deviceAddress == null || deviceAddress.isEmpty) {
-    setState(() {
-      _deviceName = "Invalid device address";
-    });
-    return;
-  }
-
-  try {
-    await platform.invokeMethod('connectToDevice', {'deviceId': deviceAddress});
-    setState(() {
-      _deviceName = "Connected to $deviceAddress";
-    });
-  } on PlatformException catch (e) {
-    setState(() {
-      _deviceName = "Failed to connect: ${e.message}";
-    });
-  }
-}
-
-  Future<void> _getWeightData() async {
-    try {
-      final result = await platform.invokeMethod('getWeightData');
-      setState(() {
-        _weightData = result ?? "Failed to get weight: Unknown error";
-      });
-    } on PlatformException catch (e) {
-      setState(() {
-        _weightData = "Failed to get weight: ${e.message}";
-      });
-    }
-  }
-
-  Future<void> _handleNativeMethodCall(MethodCall call) async {
-    switch (call.method) {
-      case "onDeviceFound":
-        final deviceInfo = Map<String, String>.from(call.arguments);
-        setState(() {
-          _deviceList.add(deviceInfo);
-        });
-        break;
-      case "onWeightDataReceived":
-        setState(() {
-          _weightData = call.arguments;
-        });
-        break;
-      case "onError":
-        setState(() {
-          _weightData = "Error: ${call.arguments}";
-        });
-        break;
-      default:
-        print("Unrecognized method: ${call.method}");
+      // Discover services and characteristics
+      List<BluetoothService> services = await device.discoverServices();
+      for (var service in services) {
+        print("Service UUID: ${service.uuid}");
+        for (var characteristic in service.characteristics) {
+          print("Characteristic UUID: ${characteristic.uuid}");
+        }
+      }
+    } catch (e) {
+      print("Failed to connect: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('SDK Connection 2, Test Screen')),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Text("Device: $_deviceName", style: const TextStyle(fontSize: 16)),
-            Text("Weight Data: $_weightData", style: const TextStyle(fontSize: 16)),
-            ElevatedButton(
-              onPressed: _getWeightData,
-              child: const Text('Fetch Weight Data'),
+      appBar: AppBar(
+        title: Text("BLE Scanner"),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: scanResults.length,
+              itemBuilder: (context, index) {
+                ScanResult result = scanResults[index];
+                return ListTile(
+                  title: Text(result.device.name.isNotEmpty
+                      ? result.device.name
+                      : "Unknown Device"),
+                  subtitle: Text(result.device.id.id),
+                  onTap: () => _connectToDevice(result.device),
+                );
+              },
             ),
-            const SizedBox(height: 10),
-            _isScanning
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _startScan,
-                    child: const Text('Start Scan'),
-                  ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: _deviceList.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: _deviceList.length,
-                      itemBuilder: (context, index) {
-                        final device = _deviceList[index];
-                        return ListTile(
-                          title: Text(device['name'] ?? "Unknown device"),
-                          subtitle: Text(device['address'] ?? "No address"),
-                          trailing: ElevatedButton(
-                            onPressed:(){
-                              _connectToDevice(device['address']!);
-                              print("connect button clicked: ${device['name']}");
-                              print("connected device address: ${device['address']}");
-
-                            } ,
-                            child: const Text('Connect'),
-                          ),
-                        );
-                      },
-                    )
-                  : const Center(
-                      child: Text("No devices found"),
-                    ),
-            ),
-            if (_weightData.contains('Permissions denied'))
-              const Center(
-                child: Text(
-                  "Please grant Bluetooth and location permissions.",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-          ],
-        ),
+          ),
+          ElevatedButton(
+            onPressed: _startScan,
+            child: Text("Rescan"),
+          ),
+        ],
       ),
     );
   }

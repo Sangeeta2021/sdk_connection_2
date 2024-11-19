@@ -39,6 +39,7 @@ dependencies:
   flutter_blue: ^0.8.0
   url_launcher: ^6.3.1
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

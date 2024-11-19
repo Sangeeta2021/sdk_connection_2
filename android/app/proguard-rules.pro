@@ -19,3 +19,4 @@
 -keep class com.example.sdk_connection_2.** { *; }
 -keep class no.nordicsemi.android.** { *; }
 -keep class com.pauldemarco.flutterblue.** { *; }
+
