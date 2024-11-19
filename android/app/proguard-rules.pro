@@ -15,3 +15,7 @@
 -keep class cn.icomon.icdevicemanager.ICBodyFatAlgorithmsManager { *; }
 -keep class cn.icomon.icdevicemanager.ICBluetoothSystem$** { *; }
 -keep class cn.icomon.icdevicemanager.callback.** { *; }
+#newly added 
+-keep class com.example.sdk_connection_2.** { *; }
+-keep class no.nordicsemi.android.** { *; }
+-keep class com.pauldemarco.flutterblue.** { *; }
