@@ -233,7 +233,7 @@ class _TestScreenState extends State<TestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("BLE Scanner"),
+        title: Text("SDK Connection 3, Test Screen"),
       ),
       body: Column(
         children: [
