@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sdk_connection_2/Screen/deviceManager_screen.dart';
 import 'package:sdk_connection_2/Screen/testScreen.dart';
 import 'package:sdk_connection_2/Screen/testScreen2.dart';
+import 'package:sdk_connection_2/Screen/testScreen3.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,8 +19,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.purple,
       ),
-      home: DeviceManagerScreen(),
+      // home: DeviceManagerScreen(),
       // home: TestScreen2(),
+      home: TestScreen(),
       
     );
   }

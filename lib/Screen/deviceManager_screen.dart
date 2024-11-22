@@ -88,6 +88,7 @@ class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
     } on PlatformException catch (e) {
       setState(() {
         _weightData = "Failed to get weight: ${e.message}";
+
       });
     }
   }
@@ -132,14 +133,14 @@ class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
               child: Text('Get Weight Data', style: buttonTextStyle,),
             ),
             height20,
-            ElevatedButton(
-              onPressed: () async {
-                if (_deviceList.isNotEmpty) {
-                  await _connectToDevice(_deviceList.first['address']!);
-                }
-              },
-              child: Text('Connect to Device', style: buttonTextStyle,),
-            ),
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     if (_deviceList.isNotEmpty) {
+            //       await _connectToDevice(_deviceList.first['address']!);
+            //     }
+            //   },
+            //   child: Text('Connect to Device', style: buttonTextStyle,),
+            // ),
             height20,
             Expanded(
               child: ListView.builder(
