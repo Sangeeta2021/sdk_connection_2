@@ -241,6 +241,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sdk_connection_2/utils/colors.dart';
+import 'package:sdk_connection_2/utils/constants.dart';
 
 class TestScreen2 extends StatefulWidget {
   @override
@@ -257,49 +259,111 @@ class _TestScreen2State extends State<TestScreen2> {
   String _deviceName = "Not Connected";
 
   // Checking permissions and starting the scan
-  Future<void> _checkPermissionsAndStartScan() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.location,
-    ].request();
+  // Future<void> _checkPermissionsAndStartScan() async {
+  //   Map<Permission, PermissionStatus> statuses = await [
+  //     Permission.bluetoothScan,
+  //     Permission.bluetoothConnect,
+  //     Permission.location,
+  //   ].request();
 
-    if (statuses[Permission.bluetoothScan]?.isGranted == true &&
-        statuses[Permission.bluetoothConnect]?.isGranted == true &&
-        statuses[Permission.location]?.isGranted == true) {
-      _startScan();
-    } else {
-      setState(() {
-        _outputData = "Permissions denied. Please grant permissions.";
-      });
-    }
+  //   if (statuses[Permission.bluetoothScan]?.isGranted == true &&
+  //       statuses[Permission.bluetoothConnect]?.isGranted == true &&
+  //       statuses[Permission.location]?.isGranted == true) {
+  //     _startScan();
+  //   } else {
+  //     setState(() {
+  //       _outputData = "Permissions denied. Please grant permissions.";
+  //     });
+  //   }
+  // }
+
+
+  Future<void> _checkPermissionsAndStartScan() async {
+  // Request required permissions
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.bluetoothScan,
+    Permission.bluetoothConnect,
+    Permission.location, // For backward compatibility with Android < 12
+  ].request();
+
+  if (statuses.values.every((status) => status.isGranted)) {
+    _startScan();
+  } else if (statuses.values.any((status) => status.isPermanentlyDenied)) {
+    // Open app settings to enable permissions manually
+    await openAppSettings();
+    setState(() {
+      _outputData = "Please enable permissions from the app settings.";
+    });
+  } else {
+    setState(() {
+      _outputData = "Permissions denied. Please grant permissions.";
+    });
   }
+}
+
 
   // Start scanning for Bluetooth devices
+  // Future<void> _startScan() async {
+  //   if (isScanning) return;
+
+  //   setState(() {
+  //     _deviceList.clear();
+  //     isScanning = true;
+  //   });
+
+  //   flutterBlue.scanResults.listen((results) {
+  //     for (ScanResult result in results) {
+  //       if (!_deviceList.any((device) => device.id == result.device.id)) {
+  //         setState(() {
+  //           _deviceList.add(result.device);
+  //         });
+  //       }
+  //     }
+  //   });
+
+  //   flutterBlue.startScan(timeout: const Duration(seconds: 5)).whenComplete(() {
+  //     setState(() {
+  //       isScanning = false;
+  //     });
+  //   });
+  // }
+
+
   Future<void> _startScan() async {
-    if (isScanning) return;
+  if (isScanning) return;
 
+  // Check if Bluetooth is enabled
+  bool isOn = await flutterBlue.isOn;
+  if (!isOn) {
     setState(() {
-      _deviceList.clear();
-      isScanning = true;
+      _outputData = "Bluetooth is off. Please enable Bluetooth.";
     });
-
-    flutterBlue.scanResults.listen((results) {
-      for (ScanResult result in results) {
-        if (!_deviceList.any((device) => device.id == result.device.id)) {
-          setState(() {
-            _deviceList.add(result.device);
-          });
-        }
-      }
-    });
-
-    flutterBlue.startScan(timeout: const Duration(seconds: 5)).whenComplete(() {
-      setState(() {
-        isScanning = false;
-      });
-    });
+    return;
   }
+
+  setState(() {
+    _deviceList.clear();
+    isScanning = true;
+  });
+
+  // Start scanning for devices
+  flutterBlue.scanResults.listen((results) {
+    for (ScanResult result in results) {
+      if (!_deviceList.any((device) => device.id == result.device.id)) {
+        setState(() {
+          _deviceList.add(result.device);
+        });
+      }
+    }
+  });
+
+  flutterBlue.startScan(timeout: const Duration(seconds: 5)).whenComplete(() {
+    setState(() {
+      isScanning = false;
+    });
+  });
+}
+
 
   // Stop scanning for devices
   Future<void> _stopScan() async {
@@ -401,7 +465,9 @@ class _TestScreen2State extends State<TestScreen2> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BLE Test Screen'),
+        backgroundColor: themeColor,
+        centerTitle: true,
+        title: const Text('SDK Connection 2, Test screen2', style: appBarTextStyle,),
         actions: [
           IconButton(
             icon: Icon(isScanning ? Icons.stop : Icons.search),

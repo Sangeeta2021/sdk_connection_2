@@ -132,7 +132,6 @@ class _DeviceManagerScreenState extends State<DeviceManagerScreen> {
               onPressed: _getWeightData,
               child: Text('Get Weight Data', style: buttonTextStyle,),
             ),
-            height20,
             // ElevatedButton(
             //   onPressed: () async {
             //     if (_deviceList.isNotEmpty) {

@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.purple,
       ),
       // home: DeviceManagerScreen(),
-      // home: TestScreen2(),
+      // home: DeviceManagerScreen(),
       home: TestScreen(),
       
     );
