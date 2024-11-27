@@ -1,4 +1,6 @@
-
+//get list of all available devices
+// able to connect to the devices
+// getting list of all uuids
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -157,6 +159,7 @@ class _TestScreenState extends State<TestScreen> {
             // ),
             height20,
             Expanded(
+
               child: ListView.builder(
                 itemCount: _deviceList.length,
                 itemBuilder: (context, index) {
