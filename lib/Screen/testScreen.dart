@@ -53,6 +53,7 @@ class _TestScreenState extends State<TestScreen> {
       print("Bluetooth is not on");
       return;
     }
+    
 
     // Clear previous device list and start scanning
     setState(() {
@@ -133,7 +134,7 @@ class _TestScreenState extends State<TestScreen> {
       appBar: AppBar(
         backgroundColor: Colors.purple.shade200,
         centerTitle: true,
-        title: Text('BLE SDK Connection, DM Screen', style: appBarTextStyle,),
+        title: Text('BLE SDK Connection, Test Screen', style: appBarTextStyle,),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
