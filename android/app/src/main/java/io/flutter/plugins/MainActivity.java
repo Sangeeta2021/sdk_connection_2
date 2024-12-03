@@ -1011,7 +1011,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class MainActivity extends FlutterActivity {
     private static final String CHANNEL = "com.example.sdk_connection_2/device_manager";
@@ -1019,8 +1018,6 @@ public class MainActivity extends FlutterActivity {
     private BluetoothGatt bluetoothGatt;
     private BluetoothDevice connectedDevice;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    
-    private static final int REQUEST_ENABLE_BT = 1;
 
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
@@ -1052,7 +1049,6 @@ public class MainActivity extends FlutterActivity {
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(broadcastReceiver, filter);
-
         checkBluetoothPermissions();
     }
 
@@ -1070,22 +1066,11 @@ public class MainActivity extends FlutterActivity {
 
     private void startBluetoothScan(MethodChannel.Result result) {
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             result.error("UNAVAILABLE", "Bluetooth is not available or enabled.", null);
             return;
         }
         bluetoothAdapter.startDiscovery();
         result.success("Bluetooth scan started.");
-    }
-
-    private void stopBluetoothScan(MethodChannel.Result result) {
-        if (bluetoothAdapter != null && bluetoothAdapter.isDiscovering()) {
-            bluetoothAdapter.cancelDiscovery();
-            result.success("Bluetooth scan stopped.");
-        } else {
-            result.error("SCAN_ERROR", "No ongoing Bluetooth scan to stop.", null);
-        }
     }
 
     private void connectToDevice(String deviceAddress, MethodChannel.Result result) {
@@ -1119,68 +1104,118 @@ public class MainActivity extends FlutterActivity {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Map<String, List<String>> serviceAndCharacteristicMap = new HashMap<>();
-
                 for (BluetoothGattService service : gatt.getServices()) {
                     String serviceUuid = service.getUuid().toString();
                     List<String> characteristicUuids = new ArrayList<>();
-
                     for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
                         characteristicUuids.add(characteristic.getUuid().toString());
-                        // Log discovered characteristics
-                        Log.d("Discovered Characteristic", "UUID: " + characteristic.getUuid());
                     }
-
                     serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
                 }
-
-                // Send discovered services and characteristics to Flutter
                 sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
             } else {
                 sendToFlutterOnMainThread("onServicesDiscoveredError", "Failed to discover services.");
             }
         }
 
-        UUID WEIGHT_CHARACTERISTIC_UUID = UUID.fromString("00002a05-0000-1000-8000-00805f9b34fb");
-
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                // Check if this is the weight characteristic
-                if (characteristic.getUuid().equals(WEIGHT_CHARACTERISTIC_UUID)) {
-                    String weightData = new String(characteristic.getValue());
-
-                    try {
-                        float weight = Float.parseFloat(weightData); // Parse to float if it's numeric
-                        sendToFlutterOnMainThread("onWeightDataReceived", weight);
-                    } catch (NumberFormatException e) {
-                        sendToFlutterOnMainThread("onWeightDataError", "Error parsing weight data.");
-                    }
+                if (characteristic.getUuid().toString().equals("0000ffb2-0000-1000-8000-00805f9b34fb")) {
+                    byte[] data = characteristic.getValue();
+                    String weight = parseWeightData(data);
+                    sendToFlutterOnMainThread("onWeightDataReceived", weight);
                 }
             } else {
-                sendToFlutterOnMainThread("onWeightDataError", "Failed to read characteristic.");
+                Log.e("BLE", "Failed to read characteristic: " + status);
             }
         }
     };
 
-    private void getWeightData(MethodChannel.Result result) {
-        if (connectedDevice == null || bluetoothGatt == null) {
-            result.error("NO_CONNECTION", "No device connected.", null);
-            return;
+    private String parseWeightData(byte[] data) {
+        if (data != null && data.length > 0) {
+            int weight = data[0];
+            return weight + " kg";
         }
+        return "Invalid weight data";
+    }
 
-        for (BluetoothGattService service : bluetoothGatt.getServices()) {
-            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-                // Try reading each characteristic
-                boolean success = bluetoothGatt.readCharacteristic(characteristic);
-                if (success) {
-                    // Log or send the service and characteristic UUIDs to Flutter for testing
-                    sendToFlutterOnMainThread("onCharacteristicTest", 
-                        "Testing Service UUID: " + service.getUuid() + 
-                        ", Characteristic UUID: " + characteristic.getUuid());
+    // private void getWeightData(MethodChannel.Result result) {
+    //     if (bluetoothGatt == null) {
+    //         result.error("NO_CONNECTION", "No connected device.", null);
+    //         return;
+    //     }
+
+    //     for (BluetoothGattService service : bluetoothGatt.getServices()) {
+    //         if (service.getUuid().toString().equals("00001530-1212-efde-1523-785feabcd123")) {
+    //             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+    //                 if (characteristic.getUuid().toString().equals("00001531-1212-efde-1523-785feabcd123")) {
+    //                     bluetoothGatt.readCharacteristic(characteristic);
+    //                     result.success("Reading weight data...");
+    //                     return;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     result.error("UUID_NOT_FOUND", "Weight UUID not found.", null);
+    // }
+
+    //updated one
+    private void getWeightData(MethodChannel.Result result) {
+    if (bluetoothGatt == null) {
+        result.error("NO_CONNECTION", "No connected device.", null);
+        return;
+    }
+
+    // Log all services and characteristics
+    List<BluetoothGattService> services = bluetoothGatt.getServices();
+    Map<String, List<String>> serviceAndCharacteristicMap = new HashMap<>();
+    
+    for (BluetoothGattService service : services) {
+        String serviceUuid = service.getUuid().toString();
+        List<String> characteristicUuids = new ArrayList<>();
+        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+            String characteristicUuid = characteristic.getUuid().toString();
+            characteristicUuids.add(characteristicUuid);
+            Log.d("BLE", "Service UUID: " + serviceUuid + " | Characteristic UUID: " + characteristicUuid);
+        }
+        serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
+    }
+
+    // Send to Flutter for debugging purposes
+    sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
+
+    // Now, let's search for the correct UUID for the weight characteristic
+    boolean foundWeightCharacteristic = false;
+
+    // Replace these with the UUIDs you want to check
+    String[] weightCharacteristicUuids = new String[]{
+        "00001531-1212-efde-1523-785feabcd123", // Example UUID
+        "00001532-1212-efde-1523-785feabcd123"  // Another example UUID
+    };
+
+    for (BluetoothGattService service : services) {
+        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+            String characteristicUuid = characteristic.getUuid().toString();
+
+            // Check if this is a weight characteristic
+            for (String weightUuid : weightCharacteristicUuids) {
+                if (characteristicUuid.equals(weightUuid)) {
+                    bluetoothGatt.readCharacteristic(characteristic);
+                    foundWeightCharacteristic = true;
+                    result.success("Reading weight data...");
+                    Log.d("BLE", "Reading characteristic with UUID: " + weightUuid);
+                    return;
                 }
             }
         }
     }
+
+    if (!foundWeightCharacteristic) {
+        result.error("UUID_NOT_FOUND", "No matching weight characteristic found.", null);
+    }
+}
+
 
     private void sendToFlutterOnMainThread(String method, Object arguments) {
         mainHandler.post(() -> new MethodChannel(getFlutterEngine().getDartExecutor().getBinaryMessenger(), CHANNEL)
@@ -1202,4 +1237,3 @@ public class MainActivity extends FlutterActivity {
         }
     };
 }
-

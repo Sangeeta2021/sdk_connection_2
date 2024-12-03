@@ -518,35 +518,53 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Future<void> _getWeightData() async {
+  //   if (_weightCharacteristicUuid.isEmpty) {
+  //     setState(() {
+  //       _weightData = 'Weight UUID not found!';
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     print("Invoking getWeightData with UUID: $_weightCharacteristicUuid...");
+  //     final result = await platform.invokeMethod('getWeightData', {'uuid': _weightCharacteristicUuid});
+  //     print("Result from native: $result");
+
+  //     setState(() {
+  //       _weightData = result;
+  //       print("You measured weight is: $result");
+  //     });
+  //   } on PlatformException catch (e) {
+  //     print("PlatformException occurred: ${e.message}");
+  //     setState(() {
+  //       _weightData = "Failed to get weight: ${e.message}";
+  //     });
+  //   } catch (e) {
+  //     print("Unexpected error: $e");
+  //     setState(() {
+  //       _weightData = "Failed to get weight: Unexpected error.";
+  //     });
+  //   }
+  // }
+
+
+  //updated one
   Future<void> _getWeightData() async {
-    if (_weightCharacteristicUuid.isEmpty) {
-      setState(() {
-        _weightData = 'Weight UUID not found!';
-      });
-      return;
-    }
-
-    try {
-      print("Invoking getWeightData with UUID: $_weightCharacteristicUuid...");
-      final result = await platform.invokeMethod('getWeightData', {'uuid': _weightCharacteristicUuid});
-      print("Result from native: $result");
-
-      setState(() {
-        _weightData = result;
-        print("You measured weight is: $result");
-      });
-    } on PlatformException catch (e) {
-      print("PlatformException occurred: ${e.message}");
-      setState(() {
-        _weightData = "Failed to get weight: ${e.message}";
-      });
-    } catch (e) {
-      print("Unexpected error: $e");
-      setState(() {
-        _weightData = "Failed to get weight: Unexpected error.";
-      });
-    }
+  try {
+    final result = await platform.invokeMethod('getWeightData');
+    print("Weight Data Retrieved: $result");
+    setState(() {
+      _weightData = result;
+    });
+  } catch (e) {
+    print("Error getting weight data: $e");
+    setState(() {
+      _weightData = "Failed to retrieve weight data.";
+    });
   }
+}
+
 
   Future<void> _handleNativeMethodCall(MethodCall call) async {
     switch (call.method) {
@@ -607,13 +625,13 @@ class _HomeScreenState extends State<HomeScreen> {
     var characteristics = serviceInfo[serviceUuid];
     
     //using set of uuids which i am getting from output
-    if (serviceUuid == "00001801-0000-1000-8000-00805f9b34fb") {
+    if (serviceUuid == "00001530-1212-efde-1523-785feabcd123") {
       for (var characteristic in characteristics) {
         // If the characteristic matches any of the known weight-related UUIDs
         if (
-          // characteristic == "0000ffb1-0000-1000-8000-00805f9b34fb" ||
-          //   characteristic == "0000ffb2-0000-1000-8000-00805f9b34fb" ||
-            characteristic == "00002a05-0000-1000-8000-00805f9b34fb") {
+          characteristic == "00001531-1212-efde-1523-785feabcd123" ||
+            characteristic == "00001532-1212-efde-1523-785feabcd123" ||
+            characteristic == "00001534-1212-efde-1523-785feabcd123") {
           return characteristic;  // Return the weight characteristic UUID
         }
       }
