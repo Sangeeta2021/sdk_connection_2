@@ -188,7 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
       for (var characteristic in characteristics) {
         // If the characteristic matches any of the known weight-related UUIDs
         if (
-          characteristic == "00001531-1212-efde-1523-785feabcd123" ||
+          
+            characteristic == "00001531-1212-efde-1523-785feabcd123" ||
             characteristic == "00001532-1212-efde-1523-785feabcd123" ||
             characteristic == "00001534-1212-efde-1523-785feabcd123") {
           return characteristic;  // Return the weight characteristic UUID
@@ -196,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-  return 'No weight uuid is found'; // Return an empty string if no weight UUID is found
+  return 'No weight uuid is found'; 
 }
 
 
