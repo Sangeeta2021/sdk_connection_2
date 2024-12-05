@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sdk_connection_2/Screen/Home_screen.dart';
-import 'package:sdk_connection_2/Screen/testScreen2.dart';
 
-import 'Screen/testScreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +18,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.purple,
       ),
       home: HomeScreen(),
-      // home: TestScreen(),
+      // home: TestScreen3(),
       
     );
   }

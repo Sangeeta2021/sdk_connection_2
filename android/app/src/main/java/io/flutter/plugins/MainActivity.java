@@ -982,7 +982,246 @@
 // }
 
 
-package com.example.sdk_connection_2;
+// package com.example.sdk_connection_2;
+
+// import android.util.Log;
+// import android.bluetooth.BluetoothAdapter;
+// import android.bluetooth.BluetoothDevice;
+// import android.bluetooth.BluetoothGatt;
+// import android.bluetooth.BluetoothGattCallback;
+// import android.bluetooth.BluetoothGattCharacteristic;
+// import android.bluetooth.BluetoothGattService;
+// import android.content.BroadcastReceiver;
+// import android.content.Context;
+// import android.content.Intent;
+// import android.content.IntentFilter;
+// import android.content.pm.PackageManager;
+// import android.Manifest;
+// import android.os.Build;
+// import android.os.Handler;
+// import android.os.Looper;
+// import androidx.annotation.NonNull;
+// import androidx.core.app.ActivityCompat;
+// import androidx.core.content.ContextCompat;
+// import io.flutter.embedding.android.FlutterActivity;
+// import io.flutter.embedding.engine.FlutterEngine;
+// import io.flutter.plugin.common.MethodChannel;
+
+// import java.util.ArrayList;
+// import java.util.HashMap;
+// import java.util.List;
+// import java.util.Map;
+
+// public class MainActivity extends FlutterActivity {
+//     private static final String CHANNEL = "com.example.sdk_connection_2/device_manager";
+//     private BluetoothAdapter bluetoothAdapter;
+//     private BluetoothGatt bluetoothGatt;
+//     private BluetoothDevice connectedDevice;
+//     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+//     @Override
+//     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
+//         super.configureFlutterEngine(flutterEngine);
+//         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+//         new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL)
+//                 .setMethodCallHandler((call, result) -> {
+//                     switch (call.method) {
+//                         case "startScan":
+//                             startBluetoothScan(result);
+//                             break;
+//                         case "connectToDevice":
+//                             String deviceAddress = call.argument("deviceAddress");
+//                             if (deviceAddress == null || deviceAddress.isEmpty()) {
+//                                 result.error("INVALID_ADDRESS", "Device address cannot be null or empty.", null);
+//                             } else {
+//                                 connectToDevice(deviceAddress, result);
+//                             }
+//                             break;
+//                         case "getWeightData":
+//                             getWeightData(result);
+//                             break;
+//                         default:
+//                             result.notImplemented();
+//                             break;
+//                     }
+//                 });
+
+//         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+//         registerReceiver(broadcastReceiver, filter);
+//         checkBluetoothPermissions();
+//     }
+
+//     private void checkBluetoothPermissions() {
+//         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
+//                     ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+//                 ActivityCompat.requestPermissions(this, new String[]{
+//                         Manifest.permission.BLUETOOTH_SCAN,
+//                         Manifest.permission.BLUETOOTH_CONNECT
+//                 }, 1);
+//             }
+//         }
+//     }
+
+//     private void startBluetoothScan(MethodChannel.Result result) {
+//         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+//             result.error("UNAVAILABLE", "Bluetooth is not available or enabled.", null);
+//             return;
+//         }
+//         bluetoothAdapter.startDiscovery();
+//         result.success("Bluetooth scan started.");
+//     }
+
+//     private void connectToDevice(String deviceAddress, MethodChannel.Result result) {
+//         try {
+//             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
+//             if (device != null) {
+//                 connectedDevice = device;
+//                 bluetoothGatt = device.connectGatt(this, false, gattCallback);
+//                 result.success("Connecting to " + device.getName());
+//             } else {
+//                 result.error("ERROR", "Device not found.", null);
+//             }
+//         } catch (IllegalArgumentException e) {
+//             result.error("INVALID_ADDRESS", "Invalid Bluetooth address: " + deviceAddress, null);
+//         }
+//     }
+
+//     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+//         @Override
+//         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+//             if (newState == BluetoothGatt.STATE_CONNECTED) {
+//                 bluetoothGatt = gatt;
+//                 bluetoothGatt.discoverServices();
+//                 sendToFlutterOnMainThread("onConnectionStateChange", "Connected to device.");
+//             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+//                 sendToFlutterOnMainThread("onConnectionStateChange", "Disconnected from device.");
+//             }
+//         }
+
+//         @Override
+//         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+//             if (status == BluetoothGatt.GATT_SUCCESS) {
+//                 Map<String, List<String>> serviceAndCharacteristicMap = new HashMap<>();
+//                 for (BluetoothGattService service : gatt.getServices()) {
+//                     String serviceUuid = service.getUuid().toString();
+//                     List<String> characteristicUuids = new ArrayList<>();
+//                     for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+//                         characteristicUuids.add(characteristic.getUuid().toString());
+//                     }
+//                     serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
+//                 }
+//                 sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
+//             } else {
+//                 sendToFlutterOnMainThread("onServicesDiscoveredError", "Failed to discover services.");
+//             }
+//         }
+
+//         @Override
+//         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+//             if (status == BluetoothGatt.GATT_SUCCESS) {
+//                 if (characteristic.getUuid().toString().equals("0000ffb3-0000-1000-8000-00805f9b34fb")) {
+//                     byte[] data = characteristic.getValue();
+//                     String weight = parseWeightData(data);
+//                     sendToFlutterOnMainThread("onWeightDataReceived", weight);
+//                 }
+//             } else {
+//                 Log.e("BLE", "Failed to read characteristic: " + status);
+//             }
+//         }
+//     };
+
+//     private String parseWeightData(byte[] data) {
+//         if (data != null && data.length > 0) {
+//             int weight = data[0];
+//             return weight + " kg";
+//         }
+//         return "Invalid weight data";
+//     }
+
+//     //updated one
+//     private void getWeightData(MethodChannel.Result result) {
+//     if (bluetoothGatt == null) {
+//         result.error("NO_CONNECTION", "No connected device.", null);
+//         return;
+//     }
+
+//     // Log all services and characteristics
+//     List<BluetoothGattService> services = bluetoothGatt.getServices();
+//     Map<String, List<String>> serviceAndCharacteristicMap = new HashMap<>();
+    
+//     for (BluetoothGattService service : services) {
+//         String serviceUuid = service.getUuid().toString();
+//         List<String> characteristicUuids = new ArrayList<>();
+//         for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+//             String characteristicUuid = characteristic.getUuid().toString();
+//             characteristicUuids.add(characteristicUuid);
+//             Log.d("BLE", "Service UUID: " + serviceUuid + " | Characteristic UUID: " + characteristicUuid);
+//         }
+//         serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
+//     }
+
+//     // Send to Flutter for debugging purposes
+//     sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
+
+//     // Now, let's search for the correct UUID for the weight characteristic
+//     boolean foundWeightCharacteristic = false;
+
+//     // Replace these with the UUIDs you want to check
+//     String[] weightCharacteristicUuids = new String[]{
+//         "0000ffb1-0000-1000-8000-00805f9b34fb", // Example UUID
+//         "0000ffb2-0000-1000-8000-00805f9b34fb",
+//         "0000ffb3-0000-1000-8000-00805f9b34fb"  // Another example UUID
+//     };
+
+//     for (BluetoothGattService service : services) {
+//         for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+//             String characteristicUuid = characteristic.getUuid().toString();
+
+//             // Check if this is a weight characteristic
+//             for (String weightUuid : weightCharacteristicUuids) {
+//                 if (characteristicUuid.equals(weightUuid)) {
+//                     bluetoothGatt.readCharacteristic(characteristic);
+//                     foundWeightCharacteristic = true;
+//                     result.success("Reading weight data...");
+//                     Log.d("BLE", "Reading characteristic with UUID: " + weightUuid);
+//                     return;
+//                 }
+//             }
+//         }
+//     }
+
+//     if (!foundWeightCharacteristic) {
+//         result.error("UUID_NOT_FOUND", "No matching weight characteristic found.", null);
+//     }
+// }
+
+
+//     private void sendToFlutterOnMainThread(String method, Object arguments) {
+//         mainHandler.post(() -> new MethodChannel(getFlutterEngine().getDartExecutor().getBinaryMessenger(), CHANNEL)
+//                 .invokeMethod(method, arguments));
+//     }
+
+//     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+//         @Override
+//         public void onReceive(Context context, Intent intent) {
+//             if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+//                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//                 if (device != null) {
+//                     Map<String, String> deviceInfo = new HashMap<>();
+//                     deviceInfo.put("name", device.getName());
+//                     deviceInfo.put("address", device.getAddress());
+//                     sendToFlutterOnMainThread("onDeviceFound", deviceInfo);
+//                 }
+//             }
+//         }
+//     };
+// }
+
+
+
+//updated one with complete uuid hsndling, getting some response in weight data , when i used it in home screen
 
 import android.util.Log;
 import android.bluetooth.BluetoothAdapter;
@@ -1007,6 +1246,8 @@ import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1016,7 +1257,6 @@ public class MainActivity extends FlutterActivity {
     private static final String CHANNEL = "com.example.sdk_connection_2/device_manager";
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
-    private BluetoothDevice connectedDevice;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
@@ -1032,14 +1272,18 @@ public class MainActivity extends FlutterActivity {
                             break;
                         case "connectToDevice":
                             String deviceAddress = call.argument("deviceAddress");
-                            if (deviceAddress == null || deviceAddress.isEmpty()) {
-                                result.error("INVALID_ADDRESS", "Device address cannot be null or empty.", null);
-                            } else {
+                            if (deviceAddress != null && !deviceAddress.isEmpty()) {
                                 connectToDevice(deviceAddress, result);
+                            } else {
+                                result.error("INVALID_ADDRESS", "Device address cannot be null or empty.", null);
                             }
                             break;
                         case "getWeightData":
                             getWeightData(result);
+                            break;
+                        case "enableNotifications":
+                            String characteristicUuid = call.argument("characteristicUuid");
+                            enableNotifications(characteristicUuid, result);
                             break;
                         default:
                             result.notImplemented();
@@ -1077,7 +1321,6 @@ public class MainActivity extends FlutterActivity {
         try {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
             if (device != null) {
-                connectedDevice = device;
                 bluetoothGatt = device.connectGatt(this, false, gattCallback);
                 result.success("Connecting to " + device.getName());
             } else {
@@ -1113,109 +1356,65 @@ public class MainActivity extends FlutterActivity {
                     serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
                 }
                 sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
-            } else {
-                sendToFlutterOnMainThread("onServicesDiscoveredError", "Failed to discover services.");
             }
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                if (characteristic.getUuid().toString().equals("0000ffb2-0000-1000-8000-00805f9b34fb")) {
-                    byte[] data = characteristic.getValue();
-                    String weight = parseWeightData(data);
-                    sendToFlutterOnMainThread("onWeightDataReceived", weight);
-                }
-            } else {
-                Log.e("BLE", "Failed to read characteristic: " + status);
+                String weight = parseWeightData(characteristic.getValue());
+                sendToFlutterOnMainThread("onWeightDataReceived", weight);
             }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            String weight = parseWeightData(characteristic.getValue());
+            sendToFlutterOnMainThread("onWeightDataReceived", weight);
         }
     };
 
     private String parseWeightData(byte[] data) {
-        if (data != null && data.length > 0) {
-            int weight = data[0];
-            return weight + " kg";
+        if (data != null && data.length >= 4) {
+            float weight = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+            return String.format("%.2f kg", weight);
         }
         return "Invalid weight data";
     }
 
-    // private void getWeightData(MethodChannel.Result result) {
-    //     if (bluetoothGatt == null) {
-    //         result.error("NO_CONNECTION", "No connected device.", null);
-    //         return;
-    //     }
-
-    //     for (BluetoothGattService service : bluetoothGatt.getServices()) {
-    //         if (service.getUuid().toString().equals("00001530-1212-efde-1523-785feabcd123")) {
-    //             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-    //                 if (characteristic.getUuid().toString().equals("00001531-1212-efde-1523-785feabcd123")) {
-    //                     bluetoothGatt.readCharacteristic(characteristic);
-    //                     result.success("Reading weight data...");
-    //                     return;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     result.error("UUID_NOT_FOUND", "Weight UUID not found.", null);
-    // }
-
-    //updated one
-    private void getWeightData(MethodChannel.Result result) {
-    if (bluetoothGatt == null) {
-        result.error("NO_CONNECTION", "No connected device.", null);
-        return;
-    }
-
-    // Log all services and characteristics
-    List<BluetoothGattService> services = bluetoothGatt.getServices();
-    Map<String, List<String>> serviceAndCharacteristicMap = new HashMap<>();
-    
-    for (BluetoothGattService service : services) {
-        String serviceUuid = service.getUuid().toString();
-        List<String> characteristicUuids = new ArrayList<>();
-        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-            String characteristicUuid = characteristic.getUuid().toString();
-            characteristicUuids.add(characteristicUuid);
-            Log.d("BLE", "Service UUID: " + serviceUuid + " | Characteristic UUID: " + characteristicUuid);
-        }
-        serviceAndCharacteristicMap.put(serviceUuid, characteristicUuids);
-    }
-
-    // Send to Flutter for debugging purposes
-    sendToFlutterOnMainThread("onServicesDiscovered", serviceAndCharacteristicMap);
-
-    // Now, let's search for the correct UUID for the weight characteristic
-    boolean foundWeightCharacteristic = false;
-
-    // Replace these with the UUIDs you want to check
-    String[] weightCharacteristicUuids = new String[]{
-        "00001531-1212-efde-1523-785feabcd123", // Example UUID
-        "00001532-1212-efde-1523-785feabcd123"  // Another example UUID
-    };
-
-    for (BluetoothGattService service : services) {
-        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-            String characteristicUuid = characteristic.getUuid().toString();
-
-            // Check if this is a weight characteristic
-            for (String weightUuid : weightCharacteristicUuids) {
-                if (characteristicUuid.equals(weightUuid)) {
-                    bluetoothGatt.readCharacteristic(characteristic);
-                    foundWeightCharacteristic = true;
-                    result.success("Reading weight data...");
-                    Log.d("BLE", "Reading characteristic with UUID: " + weightUuid);
-                    return;
+    private void enableNotifications(String characteristicUuid, MethodChannel.Result result) {
+        if (bluetoothGatt != null) {
+            for (BluetoothGattService service : bluetoothGatt.getServices()) {
+                for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                    if (characteristic.getUuid().toString().equals(characteristicUuid)) {
+                        bluetoothGatt.setCharacteristicNotification(characteristic, true);
+                        result.success("Notifications enabled for characteristic " + characteristicUuid);
+                        return;
+                    }
                 }
             }
+            result.error("CHARACTERISTIC_NOT_FOUND", "Characteristic not found.", null);
+        } else {
+            result.error("NO_CONNECTION", "No connected device.", null);
         }
     }
 
-    if (!foundWeightCharacteristic) {
-        result.error("UUID_NOT_FOUND", "No matching weight characteristic found.", null);
+    private void getWeightData(MethodChannel.Result result) {
+        if (bluetoothGatt != null) {
+            for (BluetoothGattService service : bluetoothGatt.getServices()) {
+                for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                    if (characteristic.getProperties() == BluetoothGattCharacteristic.PROPERTY_READ) {
+                        bluetoothGatt.readCharacteristic(characteristic);
+                        result.success("Reading weight data...");
+                        return;
+                    }
+                }
+            }
+            result.error("UUID_NOT_FOUND", "No readable characteristic found.", null);
+        } else {
+            result.error("NO_CONNECTION", "No connected device.", null);
+        }
     }
-}
-
 
     private void sendToFlutterOnMainThread(String method, Object arguments) {
         mainHandler.post(() -> new MethodChannel(getFlutterEngine().getDartExecutor().getBinaryMessenger(), CHANNEL)
