@@ -123,6 +123,7 @@ class _TestScreen2State extends State<TestScreen2> {
           print("No weight UUID found in discovered services.");
         }
 
+
         break;
 
       case "onWeightDataReceived":
