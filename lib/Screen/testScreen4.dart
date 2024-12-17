@@ -312,6 +312,7 @@
 
 
 //*********8code with updated uuids*************************/
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -489,17 +490,24 @@ Future<void> _enableNotifications(String deviceAddress, String characteristicUui
     await targetCharacteristic.setNotifyValue(true);
     print("Notifications enabled for characteristic: $characteristicUuid");
 
-    // Listen for notifications
+    
+
     targetCharacteristic.value.listen((value) {
-      // Assuming the weight data is in a format that can be converted to a string
-      String weight = String.fromCharCodes(value);
+      print("raw data ...........................................................");
+  print("Raw data received: $value");
 
-      setState(() {
-        _weightData = weight;  // Update the weight data on the screen
-      });
-
-      print("Received weight data: $_weightData");
+  // Assuming the weight data is a 4-byte float (adjust if necessary)
+  if (value.length >= 4) {
+    var weight = ByteData.sublistView(Uint8List.fromList(value)).getFloat32(0, Endian.little);
+    setState(() {
+      _weightData = weight.toStringAsFixed(2);  // Update the weight data on the screen
     });
+    print("Received weight data: $_weightData kg");
+  } else {
+    print("Received data is not in expected format.");
+  }
+});
+
   } catch (e) {
     print("Failed to enable notifications: ${e.toString()}");
     setState(() {
@@ -661,3 +669,6 @@ Future<void> _enableNotifications(String deviceAddress, String characteristicUui
     );
   }
 }
+
+
+
