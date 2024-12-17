@@ -63,8 +63,11 @@ android {
     }
 }
     dependencies {
-    implementation(name: 'ICDeviceManager', ext: 'aar') {
-        transitive = false // Disable transitive dependencies if needed
+        implementation 'androidx.appcompat:appcompat:1.6.1'
+        implementation 'androidx.annotation:annotation:1.6.0'  
+        implementation 'androidx.core:core-ktx:1.10.0' 
+        implementation(name: 'ICDeviceManager', ext: 'aar') {
+            transitive = false // Disable transitive dependencies if needed
     }
 }
     

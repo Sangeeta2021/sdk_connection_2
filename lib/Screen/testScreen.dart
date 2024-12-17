@@ -1,11 +1,12 @@
 //get list of all available devices
 // able to connect to the devices
 // getting list of all uuids
-// don touch this one ***************************************************************
+// dont touch this one ***************************************************************
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sdk_connection_2/utils/colors.dart';
 import 'package:sdk_connection_2/utils/constants.dart';
 import 'package:sdk_connection_2/widget/sizedBox.dart';
 
@@ -133,7 +134,7 @@ class _TestScreenState extends State<TestScreen> {
   Widget build(BuildContext context) {
      return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple.shade200,
+        backgroundColor: themeColor,
         centerTitle: true,
         title: Text('BLE SDK Connection, Test Screen', style: appBarTextStyle,),
       ),

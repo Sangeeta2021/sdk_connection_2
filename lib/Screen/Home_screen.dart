@@ -1,4 +1,5 @@
 //trying to identify the weight related uuids , testing each uuids by putting them on code
+//when i used this with screen 4 mainactivity got 0.kg
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';

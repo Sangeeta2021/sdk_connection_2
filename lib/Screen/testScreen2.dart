@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sdk_connection_2/utils/colors.dart';
 
 class TestScreen2 extends StatefulWidget {
   const TestScreen2({super.key});
@@ -160,7 +161,7 @@ class _TestScreen2State extends State<TestScreen2> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple.shade200,
+        backgroundColor: themeColor,
         centerTitle: true,
         title: const Text('SDK Connection , TestScreen2', style: TextStyle(color: Colors.white)),
       ),
