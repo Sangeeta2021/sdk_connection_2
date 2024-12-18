@@ -126,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 
+
   Future<void> _handleNativeMethodCall(MethodCall call) async {
     switch (call.method) {
       case "onDeviceFound":
