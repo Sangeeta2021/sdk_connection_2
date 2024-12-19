@@ -416,7 +416,7 @@ class _TestScreen3State extends State<TestScreen3> {
   Future<void> _connectToDevice(String deviceAddress) async {
     try {
       final result = await platform.invokeMethod('connectToDevice', {'deviceAddress': deviceAddress});
-      print("Device connected to: $result");
+      print("**********************8Device connected to: $result");
       setState(() {
         _deviceName = result;
       });
@@ -432,6 +432,8 @@ class _TestScreen3State extends State<TestScreen3> {
       setState(() {
         _weightData = "Weight characteristic not found. Reconnect device.";
       });
+      print("************Weight characteristic not found. Reconnect device******************");
+
       return;
     }
 
@@ -440,7 +442,9 @@ class _TestScreen3State extends State<TestScreen3> {
         'serviceUuid': _weightServiceUuid,
         'characteristicUuid': _weightCharacteristicUuid
       });
-      print("Weight Data Retrieved: $result");
+      print("***********service uuid: $_weightServiceUuid");
+      print("*************************8char uuid: $_weightCharacteristicUuid");
+      print("****************************Weight Data Retrieved: $result");
       setState(() {
         _weightData = result ?? "No weight data";
       });
@@ -466,6 +470,7 @@ class _TestScreen3State extends State<TestScreen3> {
         print("Discovered Services and Characteristics: $serviceInfo");
 
         var result = _findWeightCharacteristic(serviceInfo);
+        print("*************result of _findWeightCharacteristic: $result");
         if (result != null) {
           setState(() {
             _weightServiceUuid = result['serviceUuid']!;
@@ -503,6 +508,8 @@ class _TestScreen3State extends State<TestScreen3> {
               'serviceUuid': serviceUuid,
               'characteristicUuid': characteristic.toString()
             };
+          }else{
+            print("****************uuid pattern not matched***************");
           }
         }
       }
