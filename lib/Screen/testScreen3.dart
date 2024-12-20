@@ -328,6 +328,288 @@
 
 
 //updated one in this code i am getting weight as 0kg *****************************************
+// import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
+// import 'package:flutter_blue/flutter_blue.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:sdk_connection_2/utils/constants.dart';
+// import 'package:sdk_connection_2/widget/sizedBox.dart';
+
+// class TestScreen3 extends StatefulWidget {
+//   const TestScreen3({super.key});
+
+//   @override
+//   State<TestScreen3> createState() => _TestScreen3State();
+// }
+
+// class _TestScreen3State extends State<TestScreen3> {
+//   static const platform = MethodChannel('com.example.sdk_connection_2/device_manager');
+
+//   String _weightData = 'No data received yet';
+//   String _deviceName = 'No device connected';
+//   String _weightCharacteristicUuid = '';
+//   String _weightServiceUuid = '';
+//   List<Map<String, String>> _deviceList = [];
+//   FlutterBlue flutterBlue = FlutterBlue.instance;
+
+//   // Known weight-related UUID patterns (add more if needed)
+//   final List<String> _weightUuidPatterns = [
+//     'weight',
+//     'mass',
+//     'scale',
+//     '1531', // Based on your specific UUIDs
+//     '1532',
+//     '1534',
+//     //added extra possible uuids
+//     'ffb1',
+//     'ffb2', 
+//     'ffb3'
+    
+//   ];
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     platform.setMethodCallHandler(_handleNativeMethodCall);
+//     _checkPermissions();
+//   }
+
+//   Future<void> _checkPermissions() async {
+//     try {
+//       // Request necessary permissions
+//       await [
+//         Permission.bluetooth,
+//         Permission.bluetoothScan,
+//         Permission.bluetoothConnect,
+//         Permission.locationWhenInUse,
+//       ].request();
+
+//       await _startScan();
+//     } catch (e) {
+//       print("Permission error: $e");
+//       setState(() {
+//         _deviceName = "Permission error: $e";
+//       });
+//     }
+//   }
+
+//   Future<void> _startScan() async {
+//     var state = await flutterBlue.state.first;
+//     if (state != BluetoothState.on) {
+//       print("Bluetooth is not on");
+//       setState(() {
+//         _deviceName = "Bluetooth is not enabled";
+//       });
+//       return;
+//     }
+
+//     setState(() {
+//       _deviceList.clear();
+//     });
+
+//     try {
+//       await platform.invokeMethod('startScan');
+//       print('Scanning for devices...');
+//     } on PlatformException catch (e) {
+//       print("Failed to start scan: ${e.message}");
+//       setState(() {
+//         _deviceName = "Scan failed: ${e.message}";
+//       });
+//     }
+//   }
+
+//   Future<void> _connectToDevice(String deviceAddress) async {
+//     try {
+//       final result = await platform.invokeMethod('connectToDevice', {'deviceAddress': deviceAddress});
+//       print("**********************Device connected to: $result");
+//       setState(() {
+//         _deviceName = result;
+//       });
+//     } on PlatformException catch (e) {
+//       setState(() {
+//         _deviceName = "Failed to connect: ${e.message}";
+//       });
+//     }
+//   }
+
+//   Future<void> _getWeightData() async {
+//     if (_weightCharacteristicUuid.isEmpty || _weightServiceUuid.isEmpty) {
+//       setState(() {
+//         _weightData = "Weight characteristic not found. Reconnect device.";
+//       });
+//       print("************Weight characteristic not found. Reconnect device******************");
+
+//       return;
+//     }
+
+//     try {
+//       final result = await platform.invokeMethod('getWeightData', {
+//         'serviceUuid': _weightServiceUuid,
+//         'characteristicUuid': _weightCharacteristicUuid
+//       });
+//       print("***********service uuid: $_weightServiceUuid");
+//       print("*************************char uuid: $_weightCharacteristicUuid");
+//       print("****************************Weight Data Retrieved: $result");
+//       setState(() {
+//         _weightData = result ?? "No weight data";
+//       });
+//     } catch (e) {
+//       print("Error getting weight data: $e");
+//       setState(() {
+//         _weightData = "Failed to retrieve weight data: $e";
+//       });
+//     }
+//   }
+
+  
+
+//   Future<void> _handleNativeMethodCall(MethodCall call) async {
+//   switch (call.method) {
+//     case "onDeviceFound":
+//       // This handles when a device is found during scanning
+//       Map<String, String> deviceInfo = Map<String, String>.from(call.arguments);
+//       setState(() {
+//         _deviceList.add(deviceInfo);  // Add the device to the list of devices
+//       });
+//       break;
+
+//     case "onConnectionStateChange":
+//       // This handles the connection state change (e.g., connected or disconnected)
+//       String state = call.arguments ?? "Unknown state";
+//       setState(() {
+//         _deviceName = state;  // Update the connection state (e.g., "Connected" or "Disconnected")
+//       });
+//       break;
+
+//     case "onServicesDiscovered":
+//       // This handles the discovery of services and characteristics after connecting to a device
+//       Map<String, dynamic> serviceInfo = Map<String, dynamic>.from(call.arguments);
+//       print("****************************Discovered Services and Characteristics: $serviceInfo");
+
+//       // Try to find the weight characteristic from the discovered services
+//       var result = _findWeightCharacteristic(serviceInfo);
+//       if (result != null) {
+//         setState(() {
+//           _weightServiceUuid = result['serviceUuid']!;
+//           _weightCharacteristicUuid = result['characteristicUuid']!;
+//         });
+//         print("Weight UUID found - Service: $_weightServiceUuid, Characteristic: $_weightCharacteristicUuid");
+//       } else {
+//         print("No weight characteristic found");
+//       }
+//       break;
+
+//     case "onWeightDataReceived":
+//       // This handles the weight data received from the device
+//       setState(() {
+//         _weightData = call.arguments ?? "No data";  // Update the weight data received
+//       });
+//       break;
+
+//     default:
+//       // This case handles any unimplemented method calls
+//       throw MissingPluginException("Not implemented: ${call.method}");
+//   }
+// }
+
+
+//   Map<String, String>? _findWeightCharacteristic(Map<String, dynamic> serviceInfo) {
+//     for (var serviceUuid in serviceInfo.keys) {
+//       var characteristics = serviceInfo[serviceUuid];
+      
+//       for (var characteristic in characteristics) {
+//         // Convert to string to handle potential type variations
+//         String charString = characteristic.toString().toLowerCase();
+        
+//         // Check against known weight-related patterns
+//         for (var pattern in _weightUuidPatterns) {
+//           if (charString.contains(pattern)) {
+//             return {
+//               'serviceUuid': serviceUuid,
+//               'characteristicUuid': characteristic.toString()
+//             };
+//           }else{
+//             print("****************uuid pattern not matched***************");
+//           }
+//         }
+//       }
+//     }
+//     return null;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         backgroundColor: Colors.purple.shade200,
+//         centerTitle: true,
+//         title: Text('SDK Connection, Screen3', style: appBarTextStyle),
+//         actions: [
+//           IconButton(
+//             icon: Icon(Icons.refresh),
+//             onPressed: _startScan,
+//           )
+//         ],
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: <Widget>[
+//             detailsRow("Connected Device:  ", _deviceName),
+//             height20,
+//             detailsRow("Weight Data:  ", _weightData),
+//             height20,
+//             Row(
+//               children: [
+//                 ElevatedButton(
+//                   onPressed: _getWeightData,
+//                   child: Text('Get Weight Data', style: buttonTextStyle),
+//                 ),
+//                 SizedBox(width: 10),
+//                 ElevatedButton(
+//                   onPressed: _startScan,
+//                   child: Text('Rescan Devices', style: buttonTextStyle),
+//                 ),
+//               ],
+//             ),
+//             height20,
+//             Expanded(
+//               child: ListView.builder(
+//                 itemCount: _deviceList.length,
+//                 itemBuilder: (context, index) {
+//                   return ListTile(
+//                     title: Text(_deviceList[index]['name']!, style: blackHeadingStyle),
+//                     subtitle: Text(_deviceList[index]['address']!, style: blackContentStyle),
+//                     onTap: () async {
+//                       await _connectToDevice(_deviceList[index]['address']!);
+//                     },
+//                   );
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget detailsRow(String ques, String res) {
+//     return RichText(
+//       text: TextSpan(
+//         children: [
+//           TextSpan(text: ques, style: blackContentStyle),
+//           TextSpan(text: res, style: blackHeadingStyle),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+//********************updated code to resolve the processed weight error*******************/
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -351,6 +633,7 @@ class _TestScreen3State extends State<TestScreen3> {
   String _weightServiceUuid = '';
   List<Map<String, String>> _deviceList = [];
   FlutterBlue flutterBlue = FlutterBlue.instance;
+  BluetoothDevice? _connectedDevice;
 
   // Known weight-related UUID patterns (add more if needed)
   final List<String> _weightUuidPatterns = [
@@ -360,6 +643,9 @@ class _TestScreen3State extends State<TestScreen3> {
     '1531', // Based on your specific UUIDs
     '1532',
     '1534',
+    'ffb1',
+    'ffb2', 
+    'ffb3'
   ];
 
   @override
@@ -404,7 +690,7 @@ class _TestScreen3State extends State<TestScreen3> {
 
     try {
       await platform.invokeMethod('startScan');
-      print('Scanning for devices...');
+      print('**********************Scanning for devices...');
     } on PlatformException catch (e) {
       print("Failed to start scan: ${e.message}");
       setState(() {
@@ -416,15 +702,86 @@ class _TestScreen3State extends State<TestScreen3> {
   Future<void> _connectToDevice(String deviceAddress) async {
     try {
       final result = await platform.invokeMethod('connectToDevice', {'deviceAddress': deviceAddress});
-      print("**********************8Device connected to: $result");
+      print("**********************Device connected to: $result");
       setState(() {
         _deviceName = result;
       });
+
+      // Now that we are connected, discover services
+      await _discoverServices();
     } on PlatformException catch (e) {
       setState(() {
         _deviceName = "Failed to connect: ${e.message}";
       });
     }
+  }
+
+  Future<void> _discoverServices() async {
+    if (_connectedDevice == null) return;
+
+    try {
+      // Discover services
+      List<BluetoothService> services = await _connectedDevice!.discoverServices();
+      print("Discovered services: $services");
+
+      for (var service in services) {
+        // Find the weight service and characteristic
+        var result = _findWeightCharacteristic(service);
+        if (result != null) {
+          setState(() {
+            _weightServiceUuid = result['serviceUuid']!;
+            _weightCharacteristicUuid = result['characteristicUuid']!;
+          });
+          print("Weight UUID found - Service: $_weightServiceUuid, Characteristic: $_weightCharacteristicUuid");
+
+          // Enable notifications for the weight characteristic
+          await _enableNotifications(service, result['characteristicUuid']!);
+        }
+      }
+    } catch (e) {
+      print("Error discovering services: $e");
+      setState(() {
+        _deviceName = "Failed to discover services: $e";
+      });
+    }
+  }
+
+  Future<void> _enableNotifications(BluetoothService service, String characteristicUuid) async {
+    try {
+      var characteristic = service.characteristics.firstWhere((c) => c.uuid.toString() == characteristicUuid);
+      print("**********************char of enableNotificaton: $characteristic************************");
+      await characteristic.setNotifyValue(true);
+
+      characteristic.value.listen((value) {
+        // This will be called whenever new data is received from the characteristic
+        String data = String.fromCharCodes(value);
+        setState(() {
+          _weightData = data;
+        });
+        print("Received weight data: $data");
+      });
+
+      print("Notifications enabled for characteristic: $characteristicUuid");
+    } catch (e) {
+      print("Error enabling notifications: $e");
+    }
+  }
+
+  Map<String, String>? _findWeightCharacteristic(BluetoothService service) {
+    for (var characteristic in service.characteristics) {
+      // Check against known weight-related patterns
+      for (var pattern in _weightUuidPatterns) {
+        if (characteristic.uuid.toString().contains(pattern)) {
+          return {
+            'serviceUuid': service.uuid.toString(),
+            'characteristicUuid': characteristic.uuid.toString()
+          };
+        }else{
+          print("*************************uuid pattern not matching********************");
+        }
+      }
+    }
+    return null;
   }
 
   Future<void> _getWeightData() async {
@@ -433,7 +790,6 @@ class _TestScreen3State extends State<TestScreen3> {
         _weightData = "Weight characteristic not found. Reconnect device.";
       });
       print("************Weight characteristic not found. Reconnect device******************");
-
       return;
     }
 
@@ -443,7 +799,7 @@ class _TestScreen3State extends State<TestScreen3> {
         'characteristicUuid': _weightCharacteristicUuid
       });
       print("***********service uuid: $_weightServiceUuid");
-      print("*************************8char uuid: $_weightCharacteristicUuid");
+      print("*************************char uuid: $_weightCharacteristicUuid");
       print("****************************Weight Data Retrieved: $result");
       setState(() {
         _weightData = result ?? "No weight data";
@@ -456,66 +812,79 @@ class _TestScreen3State extends State<TestScreen3> {
     }
   }
 
-  Future<void> _handleNativeMethodCall(MethodCall call) async {
-    switch (call.method) {
-      case "onDeviceFound":
-        Map<String, String> deviceInfo = Map<String, String>.from(call.arguments);
-        setState(() {
-          _deviceList.add(deviceInfo);
-        });
-        break;
+  
+Future<void> _handleNativeMethodCall(MethodCall call) async {
+  switch (call.method) {
+    case "onDeviceFound":
+      Map<String, String> deviceInfo = Map<String, String>.from(call.arguments);
+      setState(() {
+        _deviceList.add(deviceInfo);  // Add the device to the list of devices
+      });
+      break;
 
-      case "onServicesDiscovered":
-        Map<String, dynamic> serviceInfo = Map<String, dynamic>.from(call.arguments);
-        print("Discovered Services and Characteristics: $serviceInfo");
+    case "onConnectionStateChange":
+      String state = call.arguments ?? "Unknown state";
+      setState(() {
+        _deviceName = state;  // Update the connection state (e.g., "Connected" or "Disconnected")
+      });
+      break;
 
-        var result = _findWeightCharacteristic(serviceInfo);
-        print("*************result of _findWeightCharacteristic: $result");
-        if (result != null) {
-          setState(() {
-            _weightServiceUuid = result['serviceUuid']!;
-            _weightCharacteristicUuid = result['characteristicUuid']!;
-          });
-          print("Weight UUID found - Service: $_weightServiceUuid, Characteristic: $_weightCharacteristicUuid");
-        } else {
-          print("No weight characteristic found");
-        }
-        break;
+    case "onServicesDiscovered":
+      print("onServicesDiscovered called");
 
-      case "onWeightDataReceived":
-        setState(() {
-          _weightData = call.arguments ?? "No data";
-        });
-        break;
+      // Await the connected devices list to get the actual devices
+      List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+      print("***************************connected device is: $connectedDevices***********************");
 
-      default:
-        throw MissingPluginException("Not implemented: ${call.method}");
-    }
-  }
+      // Check if the connected devices list is empty or not
+      BluetoothDevice? device;
+      try {
+        device = connectedDevices.firstWhere(
+          (device) => device.id.id == call.arguments['deviceId'],
+        );
+      } catch (e) {
+        // If no device is found, we handle it here
+        print("Device not found: ${e.toString()}");
+      }
 
-  Map<String, String>? _findWeightCharacteristic(Map<String, dynamic> serviceInfo) {
-    for (var serviceUuid in serviceInfo.keys) {
-      var characteristics = serviceInfo[serviceUuid];
-      
-      for (var characteristic in characteristics) {
-        // Convert to string to handle potential type variations
-        String charString = characteristic.toString().toLowerCase();
-        
-        // Check against known weight-related patterns
-        for (var pattern in _weightUuidPatterns) {
-          if (charString.contains(pattern)) {
-            return {
-              'serviceUuid': serviceUuid,
-              'characteristicUuid': characteristic.toString()
-            };
-          }else{
-            print("****************uuid pattern not matched***************");
+      if (device != null) {
+        // Discover services for the found device
+        List<BluetoothService> services = await device.discoverServices();
+
+        // Log all discovered services and characteristics
+        print("**************************************Discovered services: $services********************");
+
+        for (var service in services) {
+          // Find the weight service and characteristic
+          var result = _findWeightCharacteristic(service);
+          print("**************************result in _handleNativeMethodCall: $result**********************");
+          if (result != null) {
+            setState(() {
+              _weightServiceUuid = result['serviceUuid']!;
+              _weightCharacteristicUuid = result['characteristicUuid']!;
+            });
+            print("Weight UUID found - Service: $_weightServiceUuid, Characteristic: $_weightCharacteristicUuid");
+
+            // Enable notifications for the weight characteristic
+            await _enableNotifications(service, result['characteristicUuid']!);
           }
         }
+      } else {
+        print("Device not found");
       }
-    }
-    return null;
+      break;
+
+    case "onWeightDataReceived":
+      setState(() {
+        _weightData = call.arguments ?? "No data";  // Update the weight data received
+      });
+      break;
+
+    default:
+      throw MissingPluginException("Not implemented: ${call.method}");
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -585,7 +954,5 @@ class _TestScreen3State extends State<TestScreen3> {
     );
   }
 }
-
-
 
 
